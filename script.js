@@ -28,3 +28,144 @@ const showCategories = (categories) => {
 };
 
 
+
+const mark = (item) => {
+    const allCategories = document.querySelectorAll("#categoriesContainer p");
+
+    allCategories.forEach(category => {
+        category.classList.remove("bg-[#15803d]", "pointer-events-none")
+
+    });
+    item.classList.add("bg-[#15803d]", "pointer-events-none");
+
+}
+
+const loadAllTrees = () => {
+    fetch('https://openapi.programming-hero.com/api/plants')
+        .then((res) => res.json())
+        .then((data) => showAllTrees(data.plants))
+        .catch((err) => {
+            console.log(err);
+        })
+}
+
+
+const showSpinner = () => {
+    plantContainer.innerHTML = `
+     <span class="loading loading-dots loading-xl col-span-full mx-auto"></span>
+    `
+}
+const showAllTrees = (plants) => {
+
+    plantContainer.innerHTML = "";
+    plants.forEach(plant => {
+        plantContainer.innerHTML += `
+        <div class="p-3 space-y-3 rounded-sm bg-white flex flex-col justify-between h-full">
+                    <div class="w-full aspect-square overflow-hidden rounded-lg">
+                        <img src="${plant.image}" alt="Jackfruit Tree" class="w-full h-full object-cover">
+                    </div>
+
+                    <h2 onclick='openModal(${JSON.stringify(plant)})'
+                     class="font-semibold cursor-pointer">${plant.name}</h2>
+                    <p>${plant.description}</p>
+                    <div class="flex sm:flex-row flex-col justify-between">
+                        <h3 class="text-[#15803d] bg-[#dcfce7] px-2 py-1  rounded-full">${plant.category}</h3>
+                        <h2 class="font-semibold"><i class="fa-solid fa-bangladeshi-taka-sign"></i>${plant.price}</h2>
+                    </div>
+                    <button onclick="add(this.parentNode)" class="cursor-pointer p-2 btn-block rounded-full bg-[#15803d]">Add to Cart</button>
+                </div>
+        `
+    });
+}
+
+const add = (item) => {
+
+    let name = item.children[1].innerText;
+    let price = item.children[3].children[1].innerText;
+    priceArr.push(price);
+
+    alert(`${name} has been added to the cart`);
+
+    cartContainer.innerHTML += `
+<div class="bg-[#f0fdf4] flex items-center justify-between p-2">
+                    <div>
+                        <h2 class="font-semibold">${name}</h2>
+                        <p class="text-[#8c8c8c] font-semibold">
+                            <i class="fa-solid fa-bangladeshi-taka-sign"></i>${price} <i  class="fa-solid fa-xmark text-[#8c8c8c]"></i> 1
+                        </p>
+                    </div>
+                    <div>
+                        <i onclick="cross(this.parentNode.parentNode)" class="fa-solid fa-xmark text-[#f34646] cursor-pointer"></i>
+                    </div>
+                </div>
+`
+    total(price);
+
+}
+
+const cross = (item) => {
+    let price = item.children[0].children[1].innerText;
+    const index = priceArr.indexOf(price);
+    priceArr.splice(index, 1)
+    item.remove();
+
+    total();
+}
+
+const priceArr = [];
+
+const total = () => {
+
+    let sum = 0;
+
+    for (const pp of priceArr) {
+
+        sum = sum + Number(pp);
+    }
+
+    if (sum === 0) {
+        totalContainer.innerHTML = "";
+    }
+
+    else {
+        totalContainer.innerHTML = `
+    <div class="flex justify-between items-center font-semibold my-4">
+                    <h1>Total :</h1>
+                    <h1><i class="fa-solid fa-bangladeshi-taka-sign"></i>${sum}</h1>
+                </div>
+    `
+    }
+
+}
+
+
+const loadTreesByCategory = (id) => {
+    showSpinner();
+    fetch(`https://openapi.programming-hero.com/api/category/${id}`)
+        .then((res) => res.json())
+        .then((data) => showAllTrees(data.plants))
+        .catch((err) => {
+            console.log(err);
+        })
+
+}
+
+const openModal = (plant) => {
+    modalContainer.innerHTML = `
+    <div class="space-y-2">
+             <h2 class="font-semibold">${plant.name}</h2>
+
+                     <div class= "w-max-[200px] h-[150px]   mx-auto overflow-hidden rounded-lg">
+                        <img src="${plant.image}" alt="Jackfruit Tree" class="w-full h-full object-cover">
+                    </div>
+
+                    <p><span class="font-semibold">Category :</span>${plant.category}</p>
+                    <p><span class="font-semibold">Price :</span>${plant.price}</p>
+                    <p><span class="font-semibold">Description :</span>${plant.description}</p>
+        </div>
+    `
+    my.showModal();
+}
+
+loadCategories();
+loadAllTrees();
